@@ -10,7 +10,7 @@
 #define REG_POWER_MGMT_1 0x6B
 
 // PID constants (these need to be tuned)
-#define KP 5
+#define KP 200
 #define KI 1
 #define KD 0.5
 
@@ -44,7 +44,7 @@ void init_single_pwm(int gpio_pin_number)
 /* Duty cycle is out of 13 bits (0-8191)*/
 void pwm_set_duty(int duty)
 {
-    ESP_ERROR_CHECK(ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0, 8191-duty));
+    ESP_ERROR_CHECK(ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0, duty));
     ESP_ERROR_CHECK(ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0));
 }
 
@@ -97,7 +97,7 @@ void app_main() {
     uint8_t reg = 0x3B;
     uint8_t rx[6]; // Accelerometer data
 
-    init_single_pwm(0);
+    init_single_pwm(9);
 
     int iteration = 0;
     float cum_error = 0;
@@ -137,7 +137,7 @@ void app_main() {
         float control_signal = KP * error + KI * cum_error + KD * rate_of_change;
 
         // Convert control signal to PWM duty cycle
-        int power = (int)(control_signal * PWM_MAX_DUTY / 100.0);
+        int power = (int)(control_signal * PWM_MAX_DUTY / 1000.0);
 
         // So that we don't have negative PWM
         power = clamp(power, 0, PWM_MAX_DUTY); // Clamp power within PWM range
